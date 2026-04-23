@@ -21,5 +21,13 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+         $this->call([
+        CategoriasSeeder::class,
+        MarcasSeeder::class,
+        ZapatosSeeder::class,       // depende de categorias y marcas
+        TallaZapatosSeeder::class, // depende de zapatos
+        ImagenSeeder::class,        // depende de zapatos
+    ]);
     }
 }
