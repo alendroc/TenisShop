@@ -1,19 +1,6 @@
-<p align="center">
-  <span style="
-    background-color: #000000;
-    color: #ffffff;
-    padding: 12px 28px;
-    border-radius: 16px;
-    font-size: 42px;
-    font-weight: 800;
-    letter-spacing: 4px;
-    display: inline-block;
-  ">
-    STRY<span style="color:#f97316;">D</span>E
-  </span>
-</p>
-
-
+<h1 align="center">
+   OkaryMsc 
+</h1>
 
 Tarea de desarrollo de tienda de ropa
 
