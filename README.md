@@ -1,5 +1,5 @@
 <h1 align="center">
-   OkaryMsc 
+   STRYDE
 </h1>
 
 Tarea de desarrollo de tienda de ropa
