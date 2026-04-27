@@ -2,6 +2,68 @@
 
 @section('title', ($zapato->nombre ?? 'Producto') . ' — STRYDE')
 
+@push('styles')
+<style>
+    /* Barra de acciones admin */
+    .admin-actions-bar {
+        background: #fff8f0;
+        border: 1.5px solid #f0d9c8;
+        border-radius: var(--radius);
+        padding: .75rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .admin-actions-bar span {
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+    }
+    .admin-actions-btns { display: flex; gap: .6rem; }
+
+    .btn-admin-edit {
+        background: var(--black);
+        color: var(--white);
+        text-decoration: none;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: .45rem 1rem;
+        border-radius: var(--radius);
+        border: none;
+        cursor: pointer;
+        transition: background .2s;
+        display: inline-block;
+    }
+    .btn-admin-edit:hover { background: #333; }
+
+    .btn-admin-delete {
+        background: transparent;
+        color: #c62828;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: .45rem 1rem;
+        border-radius: var(--radius);
+        border: 1.5px solid #c62828;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .btn-admin-delete:hover { background: #c62828; color: var(--white); }
+
+    @media (max-width: 768px) {
+        .detail-grid { grid-template-columns: 1fr !important; }
+    }
+</style>
+@endpush
+
 @section('content')
 
 {{-- BREADCRUMB --}}
@@ -15,15 +77,37 @@
     <strong style="color:var(--black)">{{ $zapato->nombre }}</strong>
 </div>
 
+{{-- ── BARRA CRUD ADMIN ── --}}
+<div class="admin-actions-bar animate">
+    <span>⚙ Administrar producto</span>
+    <div class="admin-actions-btns">
+        <a href="{{ route('admin.zapatos.index') }}" class="btn-admin-edit">
+            ☰ Todos los zapatos
+        </a>
+        <a href="{{ route('admin.zapatos.edit', $zapato->id) }}" class="btn-admin-edit">
+            Editar
+        </a>
+        <form action="{{ route('admin.zapatos.destroy', $zapato->id) }}"
+              method="POST"
+              onsubmit="return confirm('¿Eliminar {{ addslashes($zapato->nombre) }}? Esta acción no se puede deshacer.')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-admin-delete">✕ Eliminar</button>
+        </form>
+    </div>
+</div>
+
 {{-- DETALLE --}}
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:start;" class="animate">
+<div class="detail-grid animate"
+     style="display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:start;">
 
     {{-- IMAGEN --}}
     <div style="position:sticky; top:80px;">
         <div style="border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--cream);">
             <img src="{{ $zapato->imagen_principal }}"
                  alt="{{ $zapato->nombre }}"
-                 style="width:100%; aspect-ratio:1; object-fit:cover; display:block;">
+                 style="width:100%; aspect-ratio:1; object-fit:cover; display:block;"
+                 onerror="this.src='https://via.placeholder.com/600?text=Sin+imagen'">
         </div>
 
         {{-- Badge disponibilidad --}}
@@ -39,17 +123,21 @@
                     ✗ Agotado
                 </span>
             @endif
-            <span style="color:var(--gray); font-size:.8rem;">ID: #{{ str_pad($zapato->id, 4, '0', STR_PAD_LEFT) }}</span>
+            <span style="color:var(--gray); font-size:.8rem;">
+                ID: #{{ str_pad($zapato->id, 4, '0', STR_PAD_LEFT) }}
+            </span>
         </div>
     </div>
 
     {{-- INFO --}}
     <div>
-        <p style="font-size:.75rem; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--accent); margin-bottom:.5rem;">
+        <p style="font-size:.75rem; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+                  color:var(--accent); margin-bottom:.5rem;">
             {{ $zapato->marca->nombre ?? 'Marca' }}
         </p>
 
-        <h1 style="font-family:var(--font-display); font-size:3rem; letter-spacing:2px; line-height:1.1; margin-bottom:1rem;">
+        <h1 style="font-family:var(--font-display); font-size:3rem; letter-spacing:2px;
+                   line-height:1.1; margin-bottom:1rem;">
             {{ strtoupper($zapato->nombre) }}
         </h1>
 
@@ -65,9 +153,11 @@
         </div>
 
         {{-- SPECS --}}
-        <div style="border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:2rem;">
+        <div style="border:1.5px solid var(--border); border-radius:var(--radius);
+                    overflow:hidden; margin-bottom:2rem;">
             <div style="background:var(--black); padding:.6rem 1rem;">
-                <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--white); letter-spacing:2px;">ESPECIFICACIONES</span>
+                <span style="font-family:var(--font-display); font-size:1.1rem;
+                             color:var(--white); letter-spacing:2px;">ESPECIFICACIONES</span>
             </div>
             @php
                 $specs = [
@@ -81,30 +171,52 @@
             @foreach($specs as $label => $value)
                 <div style="display:flex; justify-content:space-between; padding:.75rem 1rem;
                             border-bottom:1px solid var(--border); font-size:.88rem;
-                            @if($loop->last) border-bottom:none; @endif">
+                            {{ $loop->last ? 'border-bottom:none;' : '' }}">
                     <span style="color:var(--gray); font-weight:500;">{{ $label }}</span>
                     <span style="font-weight:600;">{{ $value ?? '—' }}</span>
                 </div>
             @endforeach
         </div>
 
-        {{-- ACCIONES --}}
+        {{-- TALLAS --}}
+        @if($zapato->tallas && $zapato->tallas->count())
+        <div style="margin-bottom:2rem;">
+            <p style="font-size:.75rem; font-weight:700; letter-spacing:1.5px;
+                      text-transform:uppercase; color:var(--gray); margin-bottom:.75rem;">
+                Tallas disponibles
+            </p>
+            <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
+                @foreach($zapato->tallas as $talla)
+                    <span style="border:1.5px solid {{ $talla->stock > 0 ? 'var(--black)' : 'var(--border)' }};
+                                 color:{{ $talla->stock > 0 ? 'var(--black)' : 'var(--gray)' }};
+                                 font-size:.82rem; font-weight:600;
+                                 padding:.35rem .75rem; border-radius:var(--radius);
+                                 {{ $talla->stock === 0 ? 'text-decoration:line-through;' : '' }}">
+                        US {{ $talla->talla_us }}
+                        <span style="font-size:.7rem; color:var(--gray);">/ EU {{ $talla->talla_eu }}</span>
+                    </span>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- ACCIONES COMPRA --}}
         <div style="display:flex; gap:1rem; flex-wrap:wrap;">
             @if($zapato->disponible)
                 <button class="btn-ver" style="flex:1; padding:.75rem; font-size:.88rem; text-align:center;">
                     Agregar al carrito
                 </button>
             @else
-                <button disabled style="flex:1; padding:.75rem; font-size:.88rem; background:var(--border);
-                                        color:var(--gray); border:none; border-radius:var(--radius); font-weight:600;
+                <button disabled style="flex:1; padding:.75rem; font-size:.88rem;
+                                        background:var(--border); color:var(--gray);
+                                        border:none; border-radius:var(--radius); font-weight:600;
                                         letter-spacing:1px; text-transform:uppercase; cursor:not-allowed;">
                     No disponible
                 </button>
             @endif
             <a href="{{ route('categorias.show', $zapato->categoria_id) }}"
-               style="padding:.75rem 1.25rem; border:1.5px solid var(--black); border-radius:var(--radius);
-                      font-size:.78rem; font-weight:600; letter-spacing:1px; text-transform:uppercase;
-                      text-decoration:none; color:var(--black); transition:all .2s; white-space:nowrap;"
+               class="btn-ver"
+               style="background:transparent; color:var(--black); border:1.5px solid var(--black);"
                onmouseover="this.style.background='var(--black)'; this.style.color='var(--white)'"
                onmouseout="this.style.background='transparent'; this.style.color='var(--black)'">
                 ← Ver más
@@ -115,26 +227,16 @@
 
 {{-- RELACIONADOS --}}
 @if(isset($relacionados) && $relacionados->count())
-<div style="margin-top:4rem;">
-    <div class="page-header">
-        <h1>MÁS EN ESTA CATEGORÍA</h1>
+    <div style="margin-top:4rem;">
+        <div class="page-header">
+            <h1>MÁS EN ESTA CATEGORÍA</h1>
+        </div>
+        <div class="cards-grid">
+            @foreach($relacionados as $i => $rel)
+                @include('components.card-zapato', ['zapato' => $rel, 'delay' => ($i % 4) + 1])
+            @endforeach
+        </div>
     </div>
-    <div class="cards-grid">
-        @foreach($relacionados as $i => $rel)
-            @include('components.card-zapato', ['zapato' => $rel, 'delay' => ($i % 4) + 1])
-        @endforeach
-    </div>
-</div>
 @endif
 
 @endsection
-
-@push('styles')
-<style>
-    @media (max-width: 768px) {
-        div[style*="grid-template-columns:1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-        }
-    }
-</style>
-@endpush

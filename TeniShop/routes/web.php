@@ -6,6 +6,7 @@ use App\Http\Controllers\ZapatoController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\TallaZapatoController;
 use App\Http\Controllers\ImagenZapatoController;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +14,7 @@ use App\Http\Controllers\ImagenZapatoController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', [CategoriaController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Categorías (lectura pública)
 Route::get('/categorias',            [CategoriaController::class, 'index'])->name('categorias.index');
@@ -32,27 +33,27 @@ Route::get('/buscar',                [ZapatoController::class, 'buscar'])  ->nam
 */
 // Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
-    // CRUD Categorías
-    Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->group(function () {
 
-        Route::resource('categorias', CategoriaController::class)
-            ->except(['index', 'show']);
+    Route::resource('categorias', CategoriaController::class)
+        ->except(['index', 'show']);
 
-        // CRUD Zapatos
-        Route::resource('zapatos', ZapatoController::class);
+    // Zapatos — excluir index público
+    Route::resource('zapatos', ZapatoController::class)
+        ->except(['index']); // ← el index admin lo manejamos aparte
 
-        // CRUD Marcas
-        Route::resource('marcas', MarcaController::class);
+    Route::get('zapatos', [ZapatoController::class, 'adminIndex'])
+        ->name('zapatos.index'); // ← método separado para el admin
 
-        // Tallas de un zapato
-        Route::post('zapatos/{zapato}/tallas',  [TallaZapatoController::class, 'store']) ->name('tallas.store');
-        Route::put('tallas/{talla}',            [TallaZapatoController::class, 'update'])->name('tallas.update');
-        Route::delete('tallas/{talla}',         [TallaZapatoController::class, 'destroy'])->name('tallas.destroy');
+    Route::resource('marcas', MarcaController::class);
 
-        // Imágenes de un zapato
-        Route::post('zapatos/{zapato}/imagenes', [ImagenZapatoController::class, 'store'])  ->name('imagenes.store');
-        Route::put('imagenes/{imagen}',          [ImagenZapatoController::class, 'update']) ->name('imagenes.update');
-        Route::delete('imagenes/{imagen}',       [ImagenZapatoController::class, 'destroy'])->name('imagenes.destroy');
-    });
+    Route::post('zapatos/{zapato}/tallas',   [TallaZapatoController::class, 'store'])  ->name('tallas.store');
+    Route::put('tallas/{talla}',             [TallaZapatoController::class, 'update']) ->name('tallas.update');
+    Route::delete('tallas/{talla}',          [TallaZapatoController::class, 'destroy'])->name('tallas.destroy');
+
+    Route::post('zapatos/{zapato}/imagenes', [ImagenZapatoController::class, 'store'])  ->name('imagenes.store');
+    Route::put('imagenes/{imagen}',          [ImagenZapatoController::class, 'update']) ->name('imagenes.update');
+    Route::delete('imagenes/{imagen}',       [ImagenZapatoController::class, 'destroy'])->name('imagenes.destroy');
+});
 
 // });

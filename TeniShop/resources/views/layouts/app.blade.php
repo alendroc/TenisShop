@@ -22,6 +22,7 @@
             --font-display: 'Bebas Neue', sans-serif;
             --font-body:    'DM Sans', sans-serif;
         }
+        
 
         body {
             background: var(--white);

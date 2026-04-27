@@ -50,32 +50,29 @@ class ZapatoController extends Controller
         return view('productos.buscar', compact('zapatos', 'q'));
     }
 
-    // ── CRUD Admin ───────────────────────────────────────
+public function adminIndex(Request $request)
+{
+    $zapatos = Zapato::with(['categoria', 'marca'])
+        ->when($request->filled('q'), fn($q) => $q->buscar($request->q))
+        ->when($request->filled('categoria'), fn($q) =>
+            $q->where('categoria_id', $request->categoria)
+        )
+        ->orderBy('nombre')
+        ->paginate(15)
+        ->withQueryString();
 
-    /**
-     * Lista todos los zapatos en el panel admin.
-     * Ruta: GET /admin/zapatos
-     */
-    public function index(Request $request)
-    {
-        $zapatos = Zapato::with(['categoria', 'marca'])
-            ->when($request->filled('q'), fn($q) => $q->buscar($request->q))
-            ->when($request->filled('categoria'), fn($q) =>
-                $q->where('categoria_id', $request->categoria)
-            )
-            ->orderBy('nombre')
-            ->paginate(15)
-            ->withQueryString();
+    $categorias = Categoria::orderBy('nombre')->get();
 
-        $categorias = Categoria::orderBy('nombre')->get();
+    return view('admin.zapatos.index', compact('zapatos', 'categorias'));
+}
 
-        return view('admin.zapatos.index', compact('zapatos', 'categorias'));
-    }
+// Para el público — GET /buscar o lo que necesites
+public function index(Request $request)
+{
 
-    /**
-     * Formulario para crear zapato.
-     * Ruta: GET /admin/zapatos/create
-     */
+    return redirect()->route('home');
+}
+
     public function create()
     {
         $categorias = Categoria::orderBy('nombre')->get();
@@ -84,10 +81,7 @@ class ZapatoController extends Controller
         return view('admin.zapatos.create', compact('categorias', 'marcas'));
     }
 
-    /**
-     * Guarda un nuevo zapato con sus tallas e imágenes.
-     * Ruta: POST /admin/zapatos
-     */
+  
     public function store(Request $request)
     {
         $validated = $request->validate([
