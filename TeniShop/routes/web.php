@@ -32,7 +32,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('zapatos.index'); 
 
     Route::resource('marcas', MarcaController::class);
-
+Route::post('zapatos/{zapato}/edit',   [TallaZapatoController::class, 'store'])  ->name('tallas.store');
     Route::post('zapatos/{zapato}/tallas',   [TallaZapatoController::class, 'store'])  ->name('tallas.store');
     Route::put('tallas/{talla}',             [TallaZapatoController::class, 'update']) ->name('tallas.update');
     Route::delete('tallas/{talla}',          [TallaZapatoController::class, 'destroy'])->name('tallas.destroy');

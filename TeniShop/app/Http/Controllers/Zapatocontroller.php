@@ -153,31 +153,31 @@ public function index(Request $request)
      * Actualiza un zapato.
      * Ruta: PUT /admin/zapatos/{zapato}
      */
-    public function update(Request $request, Zapato $zapato)
-    {
-        $validated = $request->validate([
-            'categoria_id'    => 'required|exists:categorias,id',
-            'marca_id'        => 'required|exists:marcas,id',
-            'nombre'          => 'required|string|max:150',
-            'descripcion'     => 'nullable|string',
-            'precio'          => 'required|numeric|min:0',
-            'estilo'          => 'nullable|string|max:80',
-            'material'        => 'nullable|string|max:80',
-            'color_principal' => 'nullable|string|max:80',
-            'imagen_principal'=> 'nullable|image|max:2048',
-            'disponible'      => 'boolean',
-        ]);
+public function update(Request $request, Zapato $zapato)
+{
+    $validated = $request->validate([
+        'categoria_id'    => 'required|exists:categorias,id',
+        'marca_id'        => 'required|exists:marcas,id',
+        'nombre'          => 'required|string|max:150',
+        'descripcion'     => 'nullable|string',
+        'precio'          => 'required|numeric|min:0',
+        'estilo'          => 'nullable|string|max:80',
+        'material'        => 'nullable|string|max:80',
+        'color_principal' => 'nullable|string|max:80',
+        'imagen_principal'=> 'nullable|string|max:500',
+        'disponible'      => 'boolean',
+    ]);
 
-        if ($request->hasFile('imagen_principal')) {
-            $validated['imagen_principal'] = $request->file('imagen_principal')
-                ->store('zapatos', 'public');
-        }
-
-        $zapato->update($validated);
-
-        return redirect()->route('admin.zapatos.index')
-            ->with('success', 'Zapato actualizado.');
+    // Si no mandaron nueva URL, conservar la imagen actual
+    if (empty($validated['imagen_principal'])) {
+        unset($validated['imagen_principal']);
     }
+
+    $zapato->update($validated);
+
+    return redirect()->route('admin.zapatos.index')
+        ->with('success', 'Zapato actualizado.');
+}
 
     /**
      * Elimina un zapato (cascade elimina tallas e imágenes).
