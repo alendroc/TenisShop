@@ -35,6 +35,9 @@ chown -R www-data:www-data "$DB_DIR"
 chmod -R 775 "$DB_DIR"
 chmod 664 "$DB_PATH"
 
+echo ">>> Regenerando autoload..."
+composer dump-autoload --optimize --no-interaction   # ← línea nueva
+
 echo ">>> Generando APP_KEY..."
 php artisan key:generate --force
 
