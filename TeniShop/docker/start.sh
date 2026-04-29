@@ -1,6 +1,28 @@
 #!/bin/sh
 set -e
 
+# ── Generar .env desde variables de entorno de Render ──────────────
+echo ">>> Generando .env..."
+cat > /var/www/html/.env <<EOF
+APP_NAME="${APP_NAME:-TenisShop}"
+APP_ENV="${APP_ENV:-production}"
+APP_KEY="${APP_KEY:-}"
+APP_DEBUG="${APP_DEBUG:-false}"
+APP_URL="${APP_URL:-http://localhost}"
+
+LOG_CHANNEL=stderr
+LOG_LEVEL=error
+
+DB_CONNECTION=sqlite
+DB_DATABASE="${DB_DATABASE:-/var/data/database.sqlite}"
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+EOF
+
+# ── Base de datos SQLite ────────────────────────────────────────────
 DB_PATH="${DB_DATABASE:-/var/data/database.sqlite}"
 DB_DIR=$(dirname "$DB_PATH")
 
@@ -13,7 +35,7 @@ chown -R www-data:www-data "$DB_DIR"
 chmod -R 775 "$DB_DIR"
 chmod 664 "$DB_PATH"
 
-echo ">>> Generando APP_KEY si no existe..."
+echo ">>> Generando APP_KEY..."
 php artisan key:generate --force
 
 echo ">>> Corriendo migraciones..."
@@ -22,7 +44,7 @@ php artisan migrate:fresh --force
 echo ">>> Corriendo seeders..."
 php artisan db:seed --force
 
-echo ">>> Limpiando y cacheando configuración..."
+echo ">>> Cacheando configuración..."
 php artisan config:clear
 php artisan config:cache
 php artisan route:cache
