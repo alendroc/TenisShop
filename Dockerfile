@@ -13,7 +13,7 @@ RUN npm install
 
 COPY vite.config.js ./
 COPY resources/ ./resources/
-COPY public/ ./public/
+
 
 RUN npm run build
 
