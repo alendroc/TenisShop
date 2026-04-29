@@ -161,7 +161,7 @@
     <p>Completá los campos para agregar un producto al catálogo.</p>
 </div>
 
-<form action="{{ route('admin.zapatos.store') }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('admin.zapatos.store') }}" method="POST">
     @csrf
 
     {{-- ── INFORMACIÓN BÁSICA ── --}}
@@ -250,8 +250,18 @@
 
                 <div class="form-group">
                     <label for="imagen_principal">Imagen principal</label>
-                    <input type="file" id="imagen_principal" name="imagen_principal" accept="image/*">
-                    @error('imagen_principal') <span class="error-msg">{{ $message }}</span> @enderror
+                    <input type="url" id="imagen_principal" name="imagen_principal" value="{{ old('imagen_principal') }}" placeholder="https://ejemplo.com/imagen.jpg">
+                    <div id="preview-container" style="margin-top:.75rem; display:none;">
+                        <img id="preview-img"
+                            style="max-width:220px; border-radius:8px; border:1px solid #ddd;">
+                        <p id="preview-error" class="error-msg" style="display:none;">
+                            La imagen no pudo cargarse.
+                        </p>
+                    </div>
+
+                    @error('imagen_principal')
+                        <span class="error-msg">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div class="form-group" style="justify-content:flex-end; padding-bottom:.2rem;">

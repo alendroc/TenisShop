@@ -93,7 +93,7 @@ public function index(Request $request)
             'estilo'          => 'nullable|string|max:80',
             'material'        => 'nullable|string|max:80',
             'color_principal' => 'nullable|string|max:80',
-            'imagen_principal'=> 'nullable|image|max:2048',
+            'imagen_principal'=> ['nullable'],
             'disponible'      => 'boolean',
 
             // Tallas
@@ -107,11 +107,6 @@ public function index(Request $request)
             'imagenes.*'      => 'image|max:2048',
         ]);
 
-        // Imagen principal
-        if ($request->hasFile('imagen_principal')) {
-            $validated['imagen_principal'] = $request->file('imagen_principal')
-                ->store('zapatos', 'public');
-        }
 
         $zapato = Zapato::create($validated);
 
