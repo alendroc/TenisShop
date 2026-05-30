@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Categoria;
@@ -8,10 +7,6 @@ use Illuminate\Http\Request;
 
 class CategoriaController extends Controller
 {
-    /**
-     * Lista todas las categorías con conteo de zapatos.
-     * Ruta: GET /categorias
-     */
     public function index(Request $request)
     {
         $categorias = Categoria::withCount('zapatos')
@@ -27,13 +22,12 @@ class CategoriaController extends Controller
             ->take(4)
             ->get();
 
-        return view('categorias.index', compact('categorias', 'destacados'));
+        return response()->json([
+            'categorias' => $categorias,
+            'destacados' => $destacados,
+        ]);
     }
 
-    /**
-     * Muestra los zapatos de una categoría con búsqueda, orden y paginación.
-     * Ruta: GET /categorias/{categoria}
-     */
     public function show(Request $request, Categoria $categoria)
     {
         $query = $categoria->zapatos()
@@ -52,24 +46,12 @@ class CategoriaController extends Controller
 
         $zapatos = $query->paginate(8)->withQueryString();
 
-        return view('categorias.show', compact('categoria', 'zapatos'));
+        return response()->json([
+            'categoria' => $categoria,
+            'zapatos'   => $zapatos,
+        ]);
     }
 
-    // ── CRUD (para panel admin) ──────────────────────────
-
-    /**
-     * Formulario para crear categoría.
-     * Ruta: GET /admin/categorias/create
-     */
-    public function create()
-    {
-        return view('admin.categorias.create');
-    }
-
-    /**
-     * Guarda una nueva categoría.
-     * Ruta: POST /admin/categorias
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -83,25 +65,14 @@ class CategoriaController extends Controller
             $validated['imagen'] = $request->file('imagen')->store('categorias', 'public');
         }
 
-        Categoria::create($validated);
+        $categoria = Categoria::create($validated);
 
-        return redirect()->route('categorias.index')
-            ->with('success', 'Categoría creada correctamente.');
+        return response()->json([
+            'message'   => 'Categoría creada correctamente.',
+            'categoria' => $categoria,
+        ], 201);
     }
 
-    /**
-     * Formulario para editar categoría.
-     * Ruta: GET /admin/categorias/{categoria}/edit
-     */
-    public function edit(Categoria $categoria)
-    {
-        return view('admin.categorias.edit', compact('categoria'));
-    }
-
-    /**
-     * Actualiza una categoría.
-     * Ruta: PUT /admin/categorias/{categoria}
-     */
     public function update(Request $request, Categoria $categoria)
     {
         $validated = $request->validate([
@@ -117,19 +88,18 @@ class CategoriaController extends Controller
 
         $categoria->update($validated);
 
-        return redirect()->route('categorias.index')
-            ->with('success', 'Categoría actualizada.');
+        return response()->json([
+            'message'   => 'Categoría actualizada.',
+            'categoria' => $categoria,
+        ]);
     }
 
-    /**
-     * Elimina una categoría.
-     * Ruta: DELETE /admin/categorias/{categoria}
-     */
     public function destroy(Categoria $categoria)
     {
         $categoria->delete();
 
-        return redirect()->route('categorias.index')
-            ->with('success', 'Categoría eliminada.');
+        return response()->json([
+            'message' => 'Categoría eliminada.',
+        ]);
     }
 }

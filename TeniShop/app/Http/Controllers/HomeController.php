@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Categoria;
@@ -16,6 +15,9 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        return view('home', compact('categorias', 'destacados'));
+        return response()->json([
+            'categorias' => $categorias,
+            'destacados' => $destacados,
+        ]);
     }
 }

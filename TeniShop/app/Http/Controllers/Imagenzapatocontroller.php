@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Zapato;
@@ -8,10 +7,6 @@ use Illuminate\Http\Request;
 
 class ImagenZapatoController extends Controller
 {
-    /**
-     * Agrega imágenes a un zapato.
-     * Ruta: POST /admin/zapatos/{zapato}/imagenes
-     */
     public function store(Request $request, Zapato $zapato)
     {
         $request->validate([
@@ -20,22 +15,22 @@ class ImagenZapatoController extends Controller
         ]);
 
         $ultimoOrden = $zapato->imagenes()->max('orden') ?? -1;
+        $guardadas = [];
 
         foreach ($request->file('imagenes') as $archivo) {
             $ultimoOrden++;
-            $zapato->imagenes()->create([
+            $guardadas[] = $zapato->imagenes()->create([
                 'url'   => $archivo->store('zapatos/galeria', 'public'),
                 'orden' => $ultimoOrden,
             ]);
         }
 
-        return back()->with('success', 'Imágenes agregadas.');
+        return response()->json([
+            'message'  => 'Imágenes agregadas.',
+            'imagenes' => $guardadas,
+        ], 201);
     }
 
-    /**
-     * Actualiza el orden de una imagen.
-     * Ruta: PUT /admin/imagenes/{imagen}
-     */
     public function update(Request $request, ImagenZapato $imagen)
     {
         $request->validate([
@@ -44,17 +39,18 @@ class ImagenZapatoController extends Controller
 
         $imagen->update(['orden' => $request->orden]);
 
-        return back()->with('success', 'Orden actualizado.');
+        return response()->json([
+            'message' => 'Orden actualizado.',
+            'imagen'  => $imagen,
+        ]);
     }
 
-    /**
-     * Elimina una imagen.
-     * Ruta: DELETE /admin/imagenes/{imagen}
-     */
     public function destroy(ImagenZapato $imagen)
     {
         $imagen->delete();
 
-        return back()->with('success', 'Imagen eliminada.');
+        return response()->json([
+            'message' => 'Imagen eliminada.',
+        ]);
     }
 }

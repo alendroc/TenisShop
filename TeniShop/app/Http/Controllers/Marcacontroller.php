@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Marca;
@@ -7,32 +6,15 @@ use Illuminate\Http\Request;
 
 class MarcaController extends Controller
 {
-    /**
-     * Lista todas las marcas.
-     * Ruta: GET /admin/marcas
-     */
     public function index()
     {
         $marcas = Marca::withCount('zapatos')
             ->orderBy('nombre')
             ->paginate(10);
 
-        return view('admin.marcas.index', compact('marcas'));
+        return response()->json($marcas);
     }
 
-    /**
-     * Formulario para crear marca.
-     * Ruta: GET /admin/marcas/create
-     */
-    public function create()
-    {
-        return view('admin.marcas.create');
-    }
-
-    /**
-     * Guarda una nueva marca.
-     * Ruta: POST /admin/marcas
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -45,25 +27,14 @@ class MarcaController extends Controller
             $validated['logo'] = $request->file('logo')->store('marcas', 'public');
         }
 
-        Marca::create($validated);
+        $marca = Marca::create($validated);
 
-        return redirect()->route('admin.marcas.index')
-            ->with('success', 'Marca creada correctamente.');
+        return response()->json([
+            'message' => 'Marca creada correctamente.',
+            'marca'   => $marca,
+        ], 201);
     }
 
-    /**
-     * Formulario para editar marca.
-     * Ruta: GET /admin/marcas/{marca}/edit
-     */
-    public function edit(Marca $marca)
-    {
-        return view('admin.marcas.edit', compact('marca'));
-    }
-
-    /**
-     * Actualiza una marca.
-     * Ruta: PUT /admin/marcas/{marca}
-     */
     public function update(Request $request, Marca $marca)
     {
         $validated = $request->validate([
@@ -78,19 +49,18 @@ class MarcaController extends Controller
 
         $marca->update($validated);
 
-        return redirect()->route('admin.marcas.index')
-            ->with('success', 'Marca actualizada.');
+        return response()->json([
+            'message' => 'Marca actualizada.',
+            'marca'   => $marca,
+        ]);
     }
 
-    /**
-     * Elimina una marca.
-     * Ruta: DELETE /admin/marcas/{marca}
-     */
     public function destroy(Marca $marca)
     {
         $marca->delete();
 
-        return redirect()->route('admin.marcas.index')
-            ->with('success', 'Marca eliminada.');
+        return response()->json([
+            'message' => 'Marca eliminada.',
+        ]);
     }
 }

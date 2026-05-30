@@ -1,20 +1,13 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Zapato;
 use App\Models\Categoria;
 use App\Models\Marca;
-use App\Models\ImagenZapato;
-use App\Models\TallaZapato;
 use Illuminate\Http\Request;
 
 class ZapatoController extends Controller
 {
-    /**
-     * Detalle público de un zapato.
-     * Ruta: GET /productos/{zapato}
-     */
     public function show(Zapato $zapato)
     {
         $zapato->load([
@@ -31,13 +24,12 @@ class ZapatoController extends Controller
             ->take(4)
             ->get();
 
-        return view('productos.show', compact('zapato', 'relacionados'));
+        return response()->json([
+            'zapato'      => $zapato,
+            'relacionados'=> $relacionados,
+        ]);
     }
 
-    /**
-     * Búsqueda global con paginación.
-     * Ruta: GET /buscar
-     */
     public function buscar(Request $request)
     {
         $q = $request->input('q', '');
@@ -47,41 +39,31 @@ class ZapatoController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        return view('productos.buscar', compact('zapatos', 'q'));
+        return response()->json([
+            'zapatos' => $zapatos,
+            'q'       => $q,
+        ]);
     }
 
-public function adminIndex(Request $request)
-{
-    $zapatos = Zapato::with(['categoria', 'marca'])
-        ->when($request->filled('q'), fn($q) => $q->buscar($request->q))
-        ->when($request->filled('categoria'), fn($q) =>
-            $q->where('categoria_id', $request->categoria)
-        )
-        ->orderBy('nombre')
-        ->paginate(15)
-        ->withQueryString();
-
-    $categorias = Categoria::orderBy('nombre')->get();
-
-    return view('admin.zapatos.index', compact('zapatos', 'categorias'));
-}
-
-// Para el público — GET /buscar o lo que necesites
-public function index(Request $request)
-{
-
-    return redirect()->route('home');
-}
-
-    public function create()
+    public function adminIndex(Request $request)
     {
-        $categorias = Categoria::orderBy('nombre')->get();
-        $marcas     = Marca::orderBy('nombre')->get();
+        $zapatos = Zapato::with(['categoria', 'marca'])
+            ->when($request->filled('q'), fn($q) => $q->buscar($request->q))
+            ->when($request->filled('categoria'), fn($q) =>
+                $q->where('categoria_id', $request->categoria)
+            )
+            ->orderBy('nombre')
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.zapatos.create', compact('categorias', 'marcas'));
+        $categorias = Categoria::orderBy('nombre')->get();
+
+        return response()->json([
+            'zapatos'    => $zapatos,
+            'categorias' => $categorias,
+        ]);
     }
 
-  
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -93,31 +75,24 @@ public function index(Request $request)
             'estilo'          => 'nullable|string|max:80',
             'material'        => 'nullable|string|max:80',
             'color_principal' => 'nullable|string|max:80',
-            'imagen_principal'=> ['nullable'],
+            'imagen_principal'=> 'nullable',
             'disponible'      => 'boolean',
-
-            // Tallas
             'tallas'              => 'nullable|array',
             'tallas.*.talla_us'   => 'required|numeric',
             'tallas.*.talla_eu'   => 'required|numeric',
             'tallas.*.stock'      => 'required|integer|min:0',
-
-            // Imágenes adicionales
             'imagenes'        => 'nullable|array',
             'imagenes.*'      => 'image|max:2048',
         ]);
 
-
         $zapato = Zapato::create($validated);
 
-        // Guardar tallas
         if ($request->filled('tallas')) {
             foreach ($request->tallas as $talla) {
                 $zapato->tallas()->create($talla);
             }
         }
 
-        // Guardar imágenes adicionales
         if ($request->hasFile('imagenes')) {
             foreach ($request->file('imagenes') as $orden => $archivo) {
                 $zapato->imagenes()->create([
@@ -127,62 +102,45 @@ public function index(Request $request)
             }
         }
 
-        return redirect()->route('admin.zapatos.index')
-            ->with('success', 'Zapato creado correctamente.');
+        return response()->json([
+            'message' => 'Zapato creado correctamente.',
+            'zapato'  => $zapato->load(['tallas', 'imagenes']),
+        ], 201);
     }
 
-    /**
-     * Formulario para editar zapato.
-     * Ruta: GET /admin/zapatos/{zapato}/edit
-     */
-    public function edit(Zapato $zapato)
+    public function update(Request $request, Zapato $zapato)
     {
-        $zapato->load(['tallas', 'imagenes']);
-        $categorias = Categoria::orderBy('nombre')->get();
-        $marcas     = Marca::orderBy('nombre')->get();
+        $validated = $request->validate([
+            'categoria_id'    => 'required|exists:categorias,id',
+            'marca_id'        => 'required|exists:marcas,id',
+            'nombre'          => 'required|string|max:150',
+            'descripcion'     => 'nullable|string',
+            'precio'          => 'required|numeric|min:0',
+            'estilo'          => 'nullable|string|max:80',
+            'material'        => 'nullable|string|max:80',
+            'color_principal' => 'nullable|string|max:80',
+            'imagen_principal'=> 'nullable|string|max:500',
+            'disponible'      => 'boolean',
+        ]);
 
-        return view('admin.zapatos.edit', compact('zapato', 'categorias', 'marcas'));
+        if (empty($validated['imagen_principal'])) {
+            unset($validated['imagen_principal']);
+        }
+
+        $zapato->update($validated);
+
+        return response()->json([
+            'message' => 'Zapato actualizado.',
+            'zapato'  => $zapato,
+        ]);
     }
 
-    /**
-     * Actualiza un zapato.
-     * Ruta: PUT /admin/zapatos/{zapato}
-     */
-public function update(Request $request, Zapato $zapato)
-{
-    $validated = $request->validate([
-        'categoria_id'    => 'required|exists:categorias,id',
-        'marca_id'        => 'required|exists:marcas,id',
-        'nombre'          => 'required|string|max:150',
-        'descripcion'     => 'nullable|string',
-        'precio'          => 'required|numeric|min:0',
-        'estilo'          => 'nullable|string|max:80',
-        'material'        => 'nullable|string|max:80',
-        'color_principal' => 'nullable|string|max:80',
-        'imagen_principal'=> 'nullable|string|max:500',
-        'disponible'      => 'boolean',
-    ]);
-
-    // Si no mandaron nueva URL, conservar la imagen actual
-    if (empty($validated['imagen_principal'])) {
-        unset($validated['imagen_principal']);
-    }
-
-    $zapato->update($validated);
-
-    return redirect()->route('admin.zapatos.index')
-        ->with('success', 'Zapato actualizado.');
-}
-
-    /**
-     * Elimina un zapato (cascade elimina tallas e imágenes).
-     * Ruta: DELETE /admin/zapatos/{zapato}
-     */
     public function destroy(Zapato $zapato)
     {
         $zapato->delete();
 
-        return redirect()->route('admin.zapatos.index')
-            ->with('success', 'Zapato eliminado.');
+        return response()->json([
+            'message' => 'Zapato eliminado.',
+        ]);
     }
 }

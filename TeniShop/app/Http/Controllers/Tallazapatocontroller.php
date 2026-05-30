@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Zapato;
@@ -8,10 +7,6 @@ use Illuminate\Http\Request;
 
 class TallaZapatoController extends Controller
 {
-    /**
-     * Agrega una talla a un zapato.
-     * Ruta: POST /admin/zapatos/{zapato}/tallas
-     */
     public function store(Request $request, Zapato $zapato)
     {
         $validated = $request->validate([
@@ -20,15 +15,14 @@ class TallaZapatoController extends Controller
             'stock'    => 'required|integer|min:0',
         ]);
 
-        $zapato->tallas()->create($validated);
+        $talla = $zapato->tallas()->create($validated);
 
-        return back()->with('success', 'Talla agregada.');
+        return response()->json([
+            'message' => 'Talla agregada.',
+            'talla'   => $talla,
+        ], 201);
     }
 
-    /**
-     * Actualiza el stock de una talla.
-     * Ruta: PUT /admin/tallas/{talla}
-     */
     public function update(Request $request, TallaZapato $talla)
     {
         $validated = $request->validate([
@@ -39,17 +33,18 @@ class TallaZapatoController extends Controller
 
         $talla->update($validated);
 
-        return back()->with('success', 'Talla actualizada.');
+        return response()->json([
+            'message' => 'Talla actualizada.',
+            'talla'   => $talla,
+        ]);
     }
 
-    /**
-     * Elimina una talla.
-     * Ruta: DELETE /admin/tallas/{talla}
-     */
     public function destroy(TallaZapato $talla)
     {
         $talla->delete();
 
-        return back()->with('success', 'Talla eliminada.');
+        return response()->json([
+            'message' => 'Talla eliminada.',
+        ]);
     }
 }
