@@ -15,7 +15,8 @@ class ZapatoController extends Controller
             'marca',
             'imagenes',
             'tallas' => fn($q) => $q->orderBy('talla_us'),
-        ]);
+       
+            ]);
 
         $relacionados = Zapato::where('categoria_id', $zapato->categoria_id)
             ->where('id', '!=', $zapato->id)
