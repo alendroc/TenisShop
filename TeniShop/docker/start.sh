@@ -8,7 +8,7 @@ APP_NAME="${APP_NAME:-TenisShop}"
 APP_ENV="${APP_ENV:-production}"
 APP_KEY="${APP_KEY:-}"
 APP_DEBUG="${APP_DEBUG:-true}"
-APP_URL="${APP_URL:-https://tenisshop.onrender.com}"
+APP_URL="${APP_URL:-https://tenisshop-production.up.railway.app/}"
 
 LOG_CHANNEL=stderr
 LOG_LEVEL=error
