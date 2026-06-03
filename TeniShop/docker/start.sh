@@ -38,14 +38,14 @@ chmod 664 "$DB_PATH"
 echo ">>> Regenerando autoload..."
 composer dump-autoload --optimize --no-interaction   # ← línea nueva
 
-echo ">>> Generando APP_KEY..."
+#echo ">>> Generando APP_KEY..."
 php artisan key:generate --force
 
 echo ">>> Corriendo migraciones..."
 php artisan migrate --force
 
 echo ">>> Corriendo seeders solo si la BD está vacía..."
-TABLA=$(php artisan tinker --execute="echo \App\Models\Zapato::count();" 2>/dev/null || echo "0")
+TABLA=$(php artisan tinker --no-interaction --execute="echo \App\Models\Zapato::count();" 2>/dev/null | tr -d '[:space:]' || echo "0")
 if [ "$TABLA" = "0" ]; then
   echo ">>> BD vacía, corriendo seeders..."
   php artisan db:seed --force
