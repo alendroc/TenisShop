@@ -42,10 +42,14 @@ echo ">>> Generando APP_KEY..."
 php artisan key:generate --force
 
 echo ">>> Corriendo migraciones..."
-php artisan migrate:fresh --force
+php artisan migrate --force
 
-echo ">>> Corriendo seeders..."
-php artisan db:seed --force
+echo ">>> Corriendo seeders solo si la BD está vacía..."
+TABLA=$(php artisan tinker --execute="echo \App\Models\Zapato::count();" 2>/dev/null || echo "0")
+if [ "$TABLA" = "0" ]; then
+  echo ">>> BD vacía, corriendo seeders..."
+  php artisan db:seed --force
+fi
 
 echo ">>> Cacheando configuración..."
 php artisan config:clear
